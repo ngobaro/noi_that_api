@@ -1,7 +1,5 @@
 package com.baro.noi_that_api.common.otp;
 
-import com.baro.noithat_api.exception.AppException;
-import com.baro.noithat_api.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
