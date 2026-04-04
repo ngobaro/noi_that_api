@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '4.0.5'
+    id 'org.springframework.boot' version '3.3.4'
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -18,9 +18,53 @@ repositories {
     mavenCentral()
 }
 
+ext {
+    lombokVersion = '1.18.38'
+    mapstructVersion = '1.5.5.Final'
+}
+
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    // 🌐 Web
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // 🔐 Security + JWT
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    implementation 'org.springframework.security:spring-security-crypto'
+    implementation 'com.nimbusds:nimbus-jose-jwt:9.30.1'
+
+    // 🗄️ JPA
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // 🐬 MySQL
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
+    // ✅ Validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // 📧 Email (🔥 thêm)
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    // 🚀 Rate limit (OTP spam)
+    implementation 'com.bucket4j:bucket4j-core:8.7.0'
+
+    // 🧩 Lombok
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+    // 🧠 MapStruct (optional nhưng nên có)
+    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+
+    // google
+    implementation 'com.google.api-client:google-api-client:2.0.0'
+    implementation 'com.google.oauth-client:google-oauth-client:1.34.1'
+    implementation 'com.google.http-client:google-http-client-jackson2:1.43.3'
+
+    // 🧪 Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
