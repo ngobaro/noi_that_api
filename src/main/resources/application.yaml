@@ -6,33 +6,28 @@ spring:
     name: noi_that_api
 
   datasource:
-    url: jdbc:mysql://gateway01.ap-southeast-1.prod.aws.tidbcloud.com:4000/noithat_db?useSSL=true&requireSSL=true&sslMode=REQUIRED&characterEncoding=UTF-8&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&connectTimeout=30000
+    url: jdbc:mysql://gateway01.ap-southeast-1.prod.aws.tidbcloud.com:4000/noithat_db?useSSL=true&requireSSL=true&sslMode=REQUIRED&characterEncoding=UTF-8&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&connectTimeout=30000&socketTimeout=60000
     username: 31J24g8N3fVgA4Z.root
     password: 4R9YX1CuYLRycsse
     driver-class-name: com.mysql.cj.jdbc.Driver
 
     hikari:
-      maximum-pool-size: 8
-      minimum-idle: 2
+      maximum-pool-size: 5
+      minimum-idle: 1
       connection-timeout: 20000
-      validation-timeout: 3000
+      validation-timeout: 5000
+      idle-timeout: 300000
 
   jpa:
     hibernate:
       ddl-auto: none
-    show-sql: false                    # ← Tắt khi deploy
+    show-sql: false
     properties:
       hibernate:
-        format_sql: false
         dialect: org.hibernate.dialect.MySQL8Dialect
 
   main:
-    lazy-initialization: true          # ← Rất quan trọng
-
-  # Tối ưu cho Render Free
-  mvc:
-    async:
-      request-timeout: 30000
+    lazy-initialization: false     # Tạm tắt để dễ debug
 
 vnpay:
   tmnCode: 9MU9VSCU
