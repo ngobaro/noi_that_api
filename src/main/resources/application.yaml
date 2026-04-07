@@ -49,4 +49,4 @@ vnpay:
   tmnCode: 9MU9VSCU
   secretKey: QV3VBGE23A4CW825WVEH5QWV4NVV0WEA
   payUrl: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-  returnUrl: http://localhost:8080/api/internal/payments/vnpay/callback
+  returnUrl: https://noi-that-api.onrender.com/api/internal/payments/vnpay/callback
