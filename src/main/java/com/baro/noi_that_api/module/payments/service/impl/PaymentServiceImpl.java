@@ -20,6 +20,9 @@ import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -57,6 +60,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public VNPayResponse createVNPay(Integer orderId, HttpServletRequest request) {
+        // Lấy payment từ DB
         Payment payment = paymentRepository.findByOrderId(orderId)
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_FOUND));
 
@@ -84,12 +88,18 @@ public class PaymentServiceImpl implements PaymentService {
         vnpParams.put("vnp_ReturnUrl", returnUrl);
         vnpParams.put("vnp_IpAddr", getSingleIp(request));
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
-        vnpParams.put("vnp_CreateDate", sdf.format(new Date()));
+        // ======= FIX múi giờ VN =======
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        ZoneId vnZone = ZoneId.of("Asia/Ho_Chi_Minh");
 
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.MINUTE, 15);
-        vnpParams.put("vnp_ExpireDate", sdf.format(cal.getTime()));
+        // vnp_CreateDate theo giờ VN
+        LocalDateTime nowVN = LocalDateTime.now(vnZone);
+        vnpParams.put("vnp_CreateDate", nowVN.format(formatter));
+
+        // vnp_ExpireDate +15 phút theo giờ VN
+        LocalDateTime expireVN = nowVN.plusMinutes(15);
+        vnpParams.put("vnp_ExpireDate", expireVN.format(formatter));
+        // ================================
 
         // Tạo chuỗi ký
         String signData = vnpParams.entrySet().stream()
