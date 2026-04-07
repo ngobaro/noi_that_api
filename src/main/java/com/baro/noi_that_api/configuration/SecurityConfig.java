@@ -1,5 +1,7 @@
 package com.baro.noi_that_api.configuration;
 
+import com.baro.noi_that_api.common.dto.ApiResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,41 +26,28 @@ import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true) // cho phép dùng @PreAuthorize
+@EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final CustomJwtDecoder customJwtDecoder;
+    private final AuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);
     }
-    // 👉 các API public (không cần login)
-    private final String[] PUBLIC_ENDPOINTS = {
-            "/auth/**"
-    };
-
-    private final CustomJwtDecoder customJwtDecoder;
-    private final AuthenticationEntryPoint jwtAuthenticationEntryPoint;
-
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-
-//        config.setAllowedOriginPatterns(List.of(
-//                "http://localhost:3000",
-//                "http://localhost:5173"
-//        ));
-
-        config.setAllowedOriginPatterns(List.of("*"));   // Tạm thời cho dev, sau đổi thành localhost cụ thể
-
+        config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("*"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-
         return source;
     }
 
@@ -71,67 +60,104 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // ===================== PUBLIC - CUSTOMER AUTH =====================
+                        // ===================== PUBLIC =====================
                         .requestMatchers(HttpMethod.POST,
+                                "/api/internal/auth/login",
+                                "/api/internal/auth/forgot-password",
+                                "/api/internal/auth/verify-otp",
+                                "/api/internal/auth/reset-password",
                                 "/api/internal/customers/register",
-                                "/api/internal/customers/verify",
-                                "/api/internal/customers/google"
+                                "/api/internal/customers/google",
+                                "/api/internal/customers/verify"
                         ).permitAll()
 
                         .requestMatchers(HttpMethod.GET,
-                                "/api/internal/customers/email/**"
+                                "/api/internal/customers/email/**",
+                                "/api/internal/staff/email/**"
                         ).permitAll()
 
-                        // ===================== PUBLIC - STAFF AUTH =====================
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/internal/staff/verify"
-                        ).permitAll()
-
-                        // ===================== ADMIN + STAFF =====================
-                        .requestMatchers(
+                        // ===================== CUSTOMER =====================
+                        .requestMatchers(HttpMethod.GET,
                                 "/api/internal/orders/**",
                                 "/api/internal/order-details/**",
                                 "/api/internal/payments/**",
                                 "/api/internal/promotions/**",
                                 "/api/internal/category-promotions/**"
-                        ).hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
+                        ).hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF", "ROLE_CUSTOMER")
 
-                        .requestMatchers(
+                        .requestMatchers(HttpMethod.PUT,
                                 "/api/internal/customers/**"
-                        ).hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
+                        ).hasAnyAuthority("ROLE_ADMIN", "ROLE_CUSTOMER")
+
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/internal/orders",
+                                "/api/internal/payments/vnpay/create"
+                        ).hasAnyAuthority("ROLE_ADMIN", "ROLE_CUSTOMER")
+
+                        // ===================== STAFF & ADMIN - Chỉ được XEM =====================
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/internal/staff/**",
+                                "/api/internal/customers"
+                        ).hasAnyAuthority("ROLE_STAFF" , "ROLE_ADMIN")
+
+                        // ===================== STAFF & ADMIN - Được sửa Order =====================
+                        .requestMatchers(HttpMethod.PUT,
+                                "/api/internal/orders/**"
+                        ).hasAnyAuthority("ROLE_STAFF", "ROLE_ADMIN")
 
                         // ===================== ADMIN ONLY =====================
-                        .requestMatchers(HttpMethod.POST,
-                                "/api/internal/staff"
-                        ).hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/internal/staff")
+                        .hasAuthority("ROLE_ADMIN")
 
-                        .requestMatchers(HttpMethod.PUT,
-                                "/api/internal/staff/*/status"
-                        ).hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/internal/staff/**")
+                        .hasAuthority("ROLE_ADMIN")
 
                         .requestMatchers(HttpMethod.DELETE,
-                                "/api/internal/staff/**"
+                                "/api/internal/staff/**",
+                                "/api/internal/promotions/**",
+                                "/api/internal/category-promotions/**"
                         ).hasAuthority("ROLE_ADMIN")
 
-                        // Staff tự xem/sửa profile của mình
-                        .requestMatchers(HttpMethod.GET,
-                                "/api/internal/staff/**"
-                        ).hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
+                        // Promotion & Category Promotion - Chỉ ADMIN
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/internal/promotions",
+                                "/api/internal/category-promotions"
+                        ).hasAuthority("ROLE_ADMIN")
 
                         .requestMatchers(HttpMethod.PUT,
-                                "/api/internal/staff/**"
-                        ).hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
+                                "/api/internal/promotions/**"
+                        ).hasAuthority("ROLE_ADMIN")
+
+                        .requestMatchers(HttpMethod.PUT, "/api/internal/payments/**")
+                        .hasAuthority("ROLE_ADMIN")
 
                         .anyRequest().authenticated()
                 )
 
-                // ===================== JWT CONFIG =====================
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt
                                 .decoder(customJwtDecoder)
                                 .jwtAuthenticationConverter(jwtAuthenticationConverter())
                         )
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                        // ==================== XỬ LÝ 403 ====================
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(403);
+                            response.setContentType("application/json;charset=UTF-8");
+
+                            ApiResponse<?> apiResponse = ApiResponse.builder()
+                                    .code(403)
+                                    .message("Bạn không có quyền thực hiện thao tác này.")
+                                    .build();
+
+                            try {
+                                new ObjectMapper().writeValue(response.getWriter(), apiResponse);
+                            } catch (Exception e) {
+                                // fallback nếu có lỗi
+                                response.getWriter().write("{\"code\":403,\"message\":\"Access Denied\"}");
+                            }
+                            response.flushBuffer();
+                        })
                 );
 
         return http.build();
@@ -143,7 +169,6 @@ public class SecurityConfig {
 
         converter.setJwtGrantedAuthoritiesConverter(jwt -> {
             String scope = jwt.getClaimAsString("scope");
-
             if (scope == null || scope.isBlank()) {
                 return Collections.emptyList();
             }

@@ -43,8 +43,7 @@ public class StaffServiceImpl implements StaffService {
 
     @Override
     public StaffResponse getById(Integer id) {
-        Staff staff = findById(id);
-        return staffMapper.toResponse(staff);
+        return staffMapper.toResponse(findById(id));
     }
 
     @Override

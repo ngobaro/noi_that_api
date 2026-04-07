@@ -8,7 +8,7 @@ spring:
   datasource:
     url: jdbc:mysql://gateway01.ap-southeast-1.prod.aws.tidbcloud.com:4000/noithat_db?useSSL=true&requireSSL=true&sslMode=REQUIRED&characterEncoding=UTF-8&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&connectTimeout=30000
     username: 31J24g8N3fVgA4Z.root
-    password: D36NU4dcy6C6xYac
+    password: 4R9YX1CuYLRycsse
     driver-class-name: com.mysql.cj.jdbc.Driver
 
     hikari:
@@ -19,13 +19,13 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: none                        # ? ??i t? validate ? none (ta t? qu?n l˝ b?ng b?ng SQL)
+      ddl-auto: none
     show-sql: true
     properties:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
-        physical_naming_strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl  # ? gi? nguyÍn tÍn b?ng UPPERCASE
+        physical_naming_strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl  # ‚Üê gi·ªØ nguy√™n t√™n b·∫£ng UPPERCASE
 
   flyway:
     enabled: false
@@ -49,4 +49,4 @@ vnpay:
   tmnCode: 9MU9VSCU
   secretKey: QV3VBGE23A4CW825WVEH5QWV4NVV0WEA
   payUrl: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-  returnUrl: http://localhost:8080/api/payment/vnpay-return
+  returnUrl: http://localhost:8080/api/internal/payments/vnpay/callback

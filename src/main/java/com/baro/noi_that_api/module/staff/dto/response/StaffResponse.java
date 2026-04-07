@@ -1,8 +1,7 @@
 package com.baro.noi_that_api.module.staff.dto.response;
 
-import com.baro.noi_that_api.module.staff.entity.Staff.StaffType;
+import com.baro.noi_that_api.enums.Role;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Getter
@@ -15,7 +14,7 @@ public class StaffResponse {
     private Integer id;
     private String name;
     private String email;
-    private StaffType type;
+    private Role type;
     private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

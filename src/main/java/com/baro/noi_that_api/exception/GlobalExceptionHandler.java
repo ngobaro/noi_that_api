@@ -1,6 +1,6 @@
 package com.baro.noi_that_api.exception;
 
-import com.baro.noithat_api.common.dto.ApiResponse;
+import com.baro.noi_that_api.common.dto.ApiResponse;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

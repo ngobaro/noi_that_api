@@ -11,10 +11,10 @@ import java.util.List;
 public interface StaffService {
 
     // Internal - Node.js gọi
-    Staff verifyLogin(String email, String password);          // trả entity để auth tạo token
+    Staff verifyLogin(String email, String password);
     StaffResponse getById(Integer id);
     StaffResponse getByEmail(String email);
-    void updatePassword(Integer id, String newPassword);       // admin reset password
+    void updatePassword(Integer id, String newPassword);
 
     // Admin CRUD
     List<StaffResponse> getAll();
