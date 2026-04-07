@@ -12,38 +12,27 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
     hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
-      connection-timeout: 30000
-      validation-timeout: 5000
+      maximum-pool-size: 8
+      minimum-idle: 2
+      connection-timeout: 20000
+      validation-timeout: 3000
 
   jpa:
     hibernate:
       ddl-auto: none
-    show-sql: true
+    show-sql: false                    # ← Tắt khi deploy
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
         dialect: org.hibernate.dialect.MySQL8Dialect
-        physical_naming_strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl  # ← giữ nguyên tên bảng UPPERCASE
 
-  flyway:
-    enabled: false
+  main:
+    lazy-initialization: true          # ← Rất quan trọng
 
-  jwt:
-    signerKey: "4f884fa882b67ebc440665bed54fa5e8eebe1f7964f54e63b7607eeb54b0d46a"
-
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ngobao6204@gmail.com
-    password: juvo xasw vvjg qwxt
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
+  # Tối ưu cho Render Free
+  mvc:
+    async:
+      request-timeout: 30000
 
 vnpay:
   tmnCode: 9MU9VSCU
