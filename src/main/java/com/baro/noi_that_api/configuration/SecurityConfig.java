@@ -76,6 +76,12 @@ public class SecurityConfig {
                                 "/api/internal/staff/email/**"
                         ).permitAll()
 
+                        .requestMatchers(HttpMethod.GET, "/api/internal/payments/vnpay/callback")
+                        .permitAll()
+
+                        .requestMatchers(HttpMethod.POST, "/api/internal/payments/vnpay/callback")  // phòng trường hợp dùng POST
+                        .permitAll()
+
                         // ===================== CUSTOMER =====================
                         .requestMatchers(HttpMethod.GET,
                                 "/api/internal/orders/**",
