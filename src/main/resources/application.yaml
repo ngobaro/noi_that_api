@@ -6,28 +6,44 @@ spring:
     name: noi_that_api
 
   datasource:
-    url: jdbc:mysql://gateway01.ap-southeast-1.prod.aws.tidbcloud.com:4000/noithat_db?useSSL=true&requireSSL=true&sslMode=REQUIRED&characterEncoding=UTF-8&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&connectTimeout=30000&socketTimeout=60000
+    url: jdbc:mysql://gateway01.ap-southeast-1.prod.aws.tidbcloud.com:4000/noithat_db?useSSL=true&requireSSL=true&sslMode=REQUIRED&characterEncoding=UTF-8&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true&connectTimeout=30000
     username: 31J24g8N3fVgA4Z.root
     password: 4R9YX1CuYLRycsse
     driver-class-name: com.mysql.cj.jdbc.Driver
 
     hikari:
-      maximum-pool-size: 5
-      minimum-idle: 1
-      connection-timeout: 20000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
       validation-timeout: 5000
-      idle-timeout: 300000
 
   jpa:
     hibernate:
       ddl-auto: none
-    show-sql: false
+    show-sql: true
     properties:
       hibernate:
+        format_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
+        physical_naming_strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl  # ← giữ nguyên tên bảng UPPERCASE
 
-  main:
-    lazy-initialization: false     # Tạm tắt để dễ debug
+  flyway:
+    enabled: false
+
+  jwt:
+    signerKey: "4f884fa882b67ebc440665bed54fa5e8eebe1f7964f54e63b7607eeb54b0d46a"
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ngobao6204@gmail.com
+    password: juvo xasw vvjg qwxt
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 vnpay:
   tmnCode: 9MU9VSCU
