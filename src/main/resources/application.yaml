@@ -35,7 +35,7 @@ spring:
 
   mail:
     host: smtp.gmail.com
-    port: 443
+    port: 587
     username: ngobao6204@gmail.com
     password: juvo xasw vvjg qwxt
     properties:
@@ -44,6 +44,8 @@ spring:
           auth: true
           starttls:
             enable: true
+        timeout: 60000
+        connectiontimeout: 60000
 
 vnpay:
   tmnCode: 9MU9VSCU
