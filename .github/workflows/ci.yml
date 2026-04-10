@@ -1,0 +1,42 @@
+name: CI Spring Boot Docker
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Lấy code từ repo
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. Cài Java 21
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      # 3. Cấp quyền cho gradlew (rất quan trọng)
+      - name: Grant permission
+        run: chmod +x gradlew
+
+      # 4. Build project
+      - name: Build project
+        run: ./gradlew clean build
+
+      # 5. Build Docker image
+      - name: Build Docker image
+        run: docker build -t noi-that-api .
+
+      # 6. Test container (optional - chạy thử)
+      - name: Run container test
+        run: docker run -d -p 8080:8080 --name test-container noi-that-api
+
+      # 7. Stop container (cleanup)
+      - name: Stop container
+        run: docker stop test-container && docker rm test-container
