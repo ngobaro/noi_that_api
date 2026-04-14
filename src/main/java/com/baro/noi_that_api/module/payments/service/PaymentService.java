@@ -5,6 +5,7 @@ import com.baro.noi_that_api.module.payments.dto.response.PaymentResponse;
 import com.baro.noi_that_api.module.payments.dto.response.VNPayResponse;
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.List;
 import java.util.Map;
 
 public interface PaymentService {
@@ -24,4 +25,6 @@ public interface PaymentService {
 
     // Cập nhật status
     void updateStatus(Integer id, String status);
+
+    List<PaymentResponse> getAll();
 }

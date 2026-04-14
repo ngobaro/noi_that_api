@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -117,6 +118,28 @@ public class PaymentController {
         return ApiResponse.<Void>builder()
                 .code(200)
                 .message("Cập nhật trạng thái thành công")
+                .build();
+    }
+
+    @GetMapping
+    public ApiResponse<List<PaymentResponse>> getAll() {
+        List<PaymentResponse> payments = paymentService.getAll();
+
+        // Nếu là CUSTOMER → chỉ xem payment của mình
+        if (SecurityUtils.isCustomer()) {
+            Integer currentId = SecurityUtils.getCurrentId();
+
+            payments = payments.stream()
+                    .filter(p -> {
+                        var order = orderService.getById(p.getOrderId());
+                        return order.getCustomerId().equals(currentId);
+                    })
+                    .toList();
+        }
+
+        return ApiResponse.<List<PaymentResponse>>builder()
+                .code(200)
+                .result(payments)
                 .build();
     }
 }

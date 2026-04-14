@@ -220,4 +220,12 @@ public class PaymentServiceImpl implements PaymentService {
             return value;
         }
     }
+
+    @Override
+    public List<PaymentResponse> getAll() {
+        return paymentRepository.findAll()
+                .stream()
+                .map(paymentMapper::toResponse)
+                .toList();
+    }
 }
