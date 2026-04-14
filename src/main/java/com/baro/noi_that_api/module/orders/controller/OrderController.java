@@ -1,7 +1,6 @@
 package com.baro.noi_that_api.module.orders.controller;
 
 import com.baro.noi_that_api.common.dto.ApiResponse;
-import com.baro.noi_that_api.common.security.SecurityUtils;
 import com.baro.noi_that_api.module.orders.dto.request.OrderCreateRequest;
 import com.baro.noi_that_api.module.orders.dto.request.OrderStatusUpdateRequest;
 import com.baro.noi_that_api.module.orders.dto.response.OrderDetailResponse;
@@ -36,9 +35,7 @@ public class OrderController {
     @GetMapping("/orders/{id}")
     public ApiResponse<OrderResponse> getById(@PathVariable Integer id) {
         OrderResponse order = orderService.getById(id);
-        if (SecurityUtils.isCustomer() && !order.getCustomerId().equals(SecurityUtils.getCurrentId())) {
-            throw new AccessDeniedException("Chỉ được xem đơn hàng của chính mình");
-        }
+
         return ApiResponse.<OrderResponse>builder()
                 .code(200)
                 .result(order)
@@ -48,9 +45,7 @@ public class OrderController {
     @GetMapping("/orders/customer/{customerId}")
     public ApiResponse<List<OrderResponse>> getByCustomerId(
             @PathVariable Integer customerId) {
-        if (SecurityUtils.isCustomer() && !customerId.equals(SecurityUtils.getCurrentId())) {
-            throw new AccessDeniedException("Chỉ được xem đơn hàng của chính mình");
-        }
+
         return ApiResponse.<List<OrderResponse>>builder()
                 .code(200)
                 .result(orderService.getByCustomerId(customerId))
@@ -59,9 +54,7 @@ public class OrderController {
 
     @GetMapping("/orders")
     public ApiResponse<List<OrderResponse>> getAll() {
-        if (SecurityUtils.isCustomer()) {
-            throw new AccessDeniedException("Customer không được xem danh sách tất cả đơn hàng");
-        }
+
         return ApiResponse.<List<OrderResponse>>builder()
                 .code(200)
                 .result(orderService.getAll())
@@ -72,9 +65,6 @@ public class OrderController {
     public ApiResponse<OrderResponse> updateStatus(
             @PathVariable Integer id,
             @Valid @RequestBody OrderStatusUpdateRequest request) {
-        if (!SecurityUtils.isAdmin() && !SecurityUtils.isStaff()) {
-            throw new AccessDeniedException("Chỉ ADMIN/STAFF mới cập nhật trạng thái đơn hàng");
-        }
         return ApiResponse.<OrderResponse>builder()
                 .code(200)
                 .result(orderService.updateStatus(id, request))
@@ -84,9 +74,6 @@ public class OrderController {
     @PutMapping("/orders/{id}/cancel")
     public ApiResponse<Void> cancel(@PathVariable Integer id) {
         OrderResponse order = orderService.getById(id);
-        if (SecurityUtils.isCustomer() && !order.getCustomerId().equals(SecurityUtils.getCurrentId())) {
-            throw new AccessDeniedException("Chỉ được hủy đơn hàng của chính mình");
-        }
         orderService.cancel(id);
         return ApiResponse.<Void>builder()
                 .code(200)
@@ -100,9 +87,6 @@ public class OrderController {
     public ApiResponse<List<OrderDetailResponse>> getDetailsByOrderId(
             @PathVariable Integer orderId) {
         OrderResponse order = orderService.getById(orderId);
-        if (SecurityUtils.isCustomer() && !order.getCustomerId().equals(SecurityUtils.getCurrentId())) {
-            throw new AccessDeniedException("Chỉ được xem chi tiết đơn hàng của chính mình");
-        }
         return ApiResponse.<List<OrderDetailResponse>>builder()
                 .code(200)
                 .result(orderDetailService.getByOrderId(orderId))

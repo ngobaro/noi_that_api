@@ -1,7 +1,6 @@
 package com.baro.noi_that_api.module.promotions.controller;
 
 import com.baro.noi_that_api.common.dto.ApiResponse;
-import com.baro.noi_that_api.common.security.SecurityUtils;
 import com.baro.noi_that_api.exception.AppException;
 import com.baro.noi_that_api.exception.ErrorCode;
 import com.baro.noi_that_api.module.promotions.dto.request.CategoryPromotionRequest;
@@ -81,11 +80,6 @@ public class PromotionController {
     public ApiResponse<PromotionResponse> update(
             @PathVariable Integer id,
             @Valid @RequestBody PromotionUpdateRequest request) {
-
-        if (!SecurityUtils.isStaff()) {
-            throw new AppException(ErrorCode.UNAUTHENTICATED);
-        }
-
         return ApiResponse.<PromotionResponse>builder()
                 .code(200)
                 .result(promotionService.update(id, request))

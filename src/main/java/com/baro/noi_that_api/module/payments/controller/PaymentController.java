@@ -1,7 +1,6 @@
 package com.baro.noi_that_api.module.payments.controller;
 
 import com.baro.noi_that_api.common.dto.ApiResponse;
-import com.baro.noi_that_api.common.security.SecurityUtils;
 import com.baro.noi_that_api.module.orders.service.OrderService; // thêm để check ownership
 import com.baro.noi_that_api.module.payments.dto.request.PaymentCreateRequest;
 import com.baro.noi_that_api.module.payments.dto.response.PaymentResponse;
@@ -85,9 +84,7 @@ public class PaymentController {
         PaymentResponse payment = paymentService.getById(id);
         // Check ownership qua order
         var order = orderService.getById(payment.getOrderId());
-        if (SecurityUtils.isCustomer() && !order.getCustomerId().equals(SecurityUtils.getCurrentId())) {
-            throw new AccessDeniedException("Chỉ được xem payment của chính mình");
-        }
+
         return ApiResponse.<PaymentResponse>builder()
                 .code(200)
                 .result(payment)
@@ -97,9 +94,7 @@ public class PaymentController {
     @GetMapping("/order/{orderId}")
     public ApiResponse<PaymentResponse> getByOrderId(@PathVariable Integer orderId) {
         var order = orderService.getById(orderId);
-        if (SecurityUtils.isCustomer() && !order.getCustomerId().equals(SecurityUtils.getCurrentId())) {
-            throw new AccessDeniedException("Chỉ được xem payment của chính mình");
-        }
+
         return ApiResponse.<PaymentResponse>builder()
                 .code(200)
                 .result(paymentService.getByOrderId(orderId))
@@ -110,10 +105,6 @@ public class PaymentController {
     public ApiResponse<Void> updateStatus(
             @PathVariable Integer id,
             @RequestParam String status) {
-        // Thường chỉ ADMIN/STAFF cập nhật
-        if (!SecurityUtils.isAdmin() && !SecurityUtils.isStaff()) {
-            throw new AccessDeniedException("Chỉ ADMIN/STAFF cập nhật trạng thái payment");
-        }
         paymentService.updateStatus(id, status);
         return ApiResponse.<Void>builder()
                 .code(200)
@@ -124,19 +115,6 @@ public class PaymentController {
     @GetMapping
     public ApiResponse<List<PaymentResponse>> getAll() {
         List<PaymentResponse> payments = paymentService.getAll();
-
-        // Nếu là CUSTOMER → chỉ xem payment của mình
-        if (SecurityUtils.isCustomer()) {
-            Integer currentId = SecurityUtils.getCurrentId();
-
-            payments = payments.stream()
-                    .filter(p -> {
-                        var order = orderService.getById(p.getOrderId());
-                        return order.getCustomerId().equals(currentId);
-                    })
-                    .toList();
-        }
-
         return ApiResponse.<List<PaymentResponse>>builder()
                 .code(200)
                 .result(payments)

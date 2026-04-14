@@ -1,7 +1,6 @@
 package com.baro.noi_that_api.module.customers.controller;
 
 import com.baro.noi_that_api.common.dto.ApiResponse;
-import com.baro.noi_that_api.common.security.SecurityUtils;
 import com.baro.noi_that_api.module.customers.dto.request.ChangePasswordRequest;
 import com.baro.noi_that_api.module.customers.dto.request.CustomerRegisterRequest;
 import com.baro.noi_that_api.module.customers.dto.request.CustomerUpdateRequest;
@@ -22,14 +21,6 @@ import java.util.List;
 public class CustomerController {
 
     private final CustomerService customerService;
-
-    private void checkCustomerAccess(Integer id) {
-        boolean isAdminOrStaff = SecurityUtils.isAdmin() || SecurityUtils.isStaff();
-        boolean isOwner = SecurityUtils.isCustomer() && id.equals(SecurityUtils.getCurrentId());
-        if (!isAdminOrStaff && !isOwner) {
-            throw new AccessDeniedException("Chỉ ADMIN/STAFF hoặc chính customer đó mới được truy cập");
-        }
-    }
 
     @PostMapping("/register")
     public ApiResponse<CustomerResponse> register(
@@ -64,7 +55,6 @@ public class CustomerController {
 
     @GetMapping("/{id}")
     public ApiResponse<CustomerResponse> getById(@PathVariable Integer id) {
-        checkCustomerAccess(id);
         return ApiResponse.<CustomerResponse>builder()
                 .code(200)
                 .result(customerService.getById(id))
@@ -74,7 +64,6 @@ public class CustomerController {
     @GetMapping("/email/{email}")
     public ApiResponse<CustomerResponse> getByEmail(@PathVariable String email) {
         CustomerResponse customer = customerService.getByEmail(email);
-        checkCustomerAccess(customer.getId());
         return ApiResponse.<CustomerResponse>builder()
                 .code(200)
                 .result(customer)
@@ -85,7 +74,6 @@ public class CustomerController {
     public ApiResponse<CustomerResponse> update(
             @PathVariable Integer id,
             @Valid @RequestBody CustomerUpdateRequest request) {
-        checkCustomerAccess(id);
         return ApiResponse.<CustomerResponse>builder()
                 .code(200)
                 .result(customerService.update(id, request))
@@ -96,7 +84,6 @@ public class CustomerController {
     public ApiResponse<Void> changePassword(
             @PathVariable Integer id,
             @Valid @RequestBody ChangePasswordRequest request) {
-        checkCustomerAccess(id);
         customerService.changePassword(id, request);
         return ApiResponse.<Void>builder()
                 .code(200)
@@ -106,9 +93,6 @@ public class CustomerController {
 
     @PutMapping("/{id}/deactivate")
     public ApiResponse<Void> deactivate(@PathVariable Integer id) {
-        if (!SecurityUtils.isAdmin() && !SecurityUtils.isStaff()) {
-            throw new AccessDeniedException("Chỉ ADMIN/STAFF mới được vô hiệu hóa customer");
-        }
         customerService.deactivate(id);
         return ApiResponse.<Void>builder()
                 .code(200)
@@ -120,9 +104,6 @@ public class CustomerController {
     public ApiResponse<Void> updateStatus(
             @PathVariable Integer id,
             @RequestParam Boolean isActive) {
-        if (!SecurityUtils.isAdmin() && !SecurityUtils.isStaff()) {
-            throw new AccessDeniedException("Chỉ ADMIN/STAFF mới cập nhật trạng thái customer");
-        }
         customerService.updateStatus(id, isActive);
         return ApiResponse.<Void>builder()
                 .code(200)
@@ -132,9 +113,6 @@ public class CustomerController {
 
     @GetMapping
     public ApiResponse<List<CustomerResponse>> getAll() {
-        if (!SecurityUtils.isAdmin() && !SecurityUtils.isStaff()) {
-            throw new AccessDeniedException("Chỉ ADMIN/STAFF xem danh sách customer");
-        }
         return ApiResponse.<List<CustomerResponse>>builder()
                 .code(200)
                 .result(customerService.getAll())

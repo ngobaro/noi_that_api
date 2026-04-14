@@ -47,6 +47,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public PaymentResponse create(PaymentCreateRequest request) {
+        if(paymentRepository.existsByOrderId(request.getOrderId())){
+            throw new AppException(ErrorCode.ORDER_NOT_FOUND);
+        }
         Payment payment = Payment.builder()
                 .orderId(request.getOrderId())
                 .method(request.getMethod())

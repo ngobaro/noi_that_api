@@ -1,7 +1,6 @@
 package com.baro.noi_that_api.module.staff.controller;
 
 import com.baro.noi_that_api.common.dto.ApiResponse;
-import com.baro.noi_that_api.common.security.SecurityUtils;
 import com.baro.noi_that_api.module.staff.dto.request.ChangePasswordRequest;
 import com.baro.noi_that_api.module.staff.dto.request.StaffCreateRequest;
 import com.baro.noi_that_api.module.staff.dto.request.StaffUpdateRequest;
@@ -22,12 +21,6 @@ public class StaffController {
 
     private final StaffService staffService;
 
-    private void checkStaffAccess(Integer id) {
-        if (!SecurityUtils.isAdmin() && !(SecurityUtils.isStaff() && id.equals(SecurityUtils.getCurrentId()))) {
-            throw new AccessDeniedException("Chỉ ADMIN hoặc chính staff đó mới được truy cập");
-        }
-    }
-
     @PostMapping("/verify")
     public ApiResponse<Staff> verifyLogin(
             @RequestParam String email,
@@ -41,7 +34,7 @@ public class StaffController {
 
     @GetMapping("/{id}")
     public ApiResponse<StaffResponse> getById(@PathVariable Integer id) {
-        checkStaffAccess(id);
+
         return ApiResponse.<StaffResponse>builder()
                 .code(200)
                 .result(staffService.getById(id))
@@ -50,9 +43,7 @@ public class StaffController {
 
     @GetMapping("/email/{email}")
     public ApiResponse<StaffResponse> getByEmail(@PathVariable String email) {
-        if (!SecurityUtils.isStaff() && !SecurityUtils.isAdmin()) {
-            throw new AccessDeniedException("Không có quyền xem thông tin staff");
-        }
+
         return ApiResponse.<StaffResponse>builder()
                 .code(200)
                 .result(staffService.getByEmail(email))
@@ -61,9 +52,6 @@ public class StaffController {
 
     @GetMapping
     public ApiResponse<List<StaffResponse>> getAll() {
-        if (!SecurityUtils.isStaff() && !SecurityUtils.isAdmin()) {
-            throw new AccessDeniedException("Chỉ ADMIN/STAFF xem danh sách staff");
-        }
         return ApiResponse.<List<StaffResponse>>builder()
                 .code(200)
                 .result(staffService.getAll())
@@ -73,9 +61,6 @@ public class StaffController {
     @PostMapping
     public ApiResponse<StaffResponse> create(
             @Valid @RequestBody StaffCreateRequest request) {
-        if (!SecurityUtils.isAdmin()) {
-            throw new AccessDeniedException("Chỉ ADMIN mới được tạo staff");
-        }
         return ApiResponse.<StaffResponse>builder()
                 .code(201)
                 .message("Tạo staff thành công")
@@ -87,7 +72,6 @@ public class StaffController {
     public ApiResponse<StaffResponse> update(
             @PathVariable Integer id,
             @Valid @RequestBody StaffUpdateRequest request) {
-        checkStaffAccess(id);
         return ApiResponse.<StaffResponse>builder()
                 .code(200)
                 .result(staffService.update(id, request))
@@ -96,9 +80,6 @@ public class StaffController {
 
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable Integer id) {
-        if (!SecurityUtils.isAdmin()) {
-            throw new AccessDeniedException("Chỉ ADMIN mới được xóa staff");
-        }
         staffService.delete(id);
         return ApiResponse.<Void>builder()
                 .code(200)
@@ -108,7 +89,6 @@ public class StaffController {
 
     @PutMapping("/{id}/activate")
     public ApiResponse<Void> activate(@PathVariable Integer id) {
-        checkStaffAccess(id);
         staffService.activate(id);
         return ApiResponse.<Void>builder()
                 .code(200)
@@ -118,7 +98,6 @@ public class StaffController {
 
     @PutMapping("/{id}/deactivate")
     public ApiResponse<Void> deactivate(@PathVariable Integer id) {
-        checkStaffAccess(id);
         staffService.deactivate(id);
         return ApiResponse.<Void>builder()
                 .code(200)
@@ -130,7 +109,6 @@ public class StaffController {
     public ApiResponse<Void> updatePassword(
             @PathVariable Integer id,
             @RequestParam String newPassword) {
-        checkStaffAccess(id);
         staffService.updatePassword(id, newPassword);
         return ApiResponse.<Void>builder()
                 .code(200)
@@ -142,7 +120,6 @@ public class StaffController {
     public ApiResponse<Void> changePassword(
             @PathVariable Integer id,
             @Valid @RequestBody ChangePasswordRequest request) {
-        checkStaffAccess(id);
         staffService.changePassword(id, request);
         return ApiResponse.<Void>builder()
                 .code(200)
