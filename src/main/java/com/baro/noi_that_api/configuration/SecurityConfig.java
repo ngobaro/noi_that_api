@@ -73,24 +73,31 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.GET,
                                 "/api/internal/customers/email/**",
-                                "/api/internal/staff/email/**"
+                                "/api/internal/staff/email/**",
+                                "/api/internal/payments/vnpay/callback"
                         ).permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/api/internal/payments/vnpay/callback")
-                        .permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/internal/payments/vnpay/callback"
+                        ).permitAll()
 
-                        .requestMatchers(HttpMethod.POST, "/api/internal/payments/vnpay/callback")  // phòng trường hợp dùng POST
-                        .permitAll()
 
-                        // ===================== CUSTOMER =====================
+                        // ===================== CUSTOMER + STAFF + ADMIN =====================
                         .requestMatchers(HttpMethod.GET,
                                 "/api/internal/orders/**",
                                 "/api/internal/order-details/**",
                                 "/api/internal/payments/**",
-                                "/api/internal/promotions/**",
-                                "/api/internal/category-promotions/**"
+                                "/api/internal/promotions/**"
                         ).hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF", "ROLE_CUSTOMER")
 
+
+                        // ⚠️ CATEGORY PROMOTION: CHỈ STAFF + ADMIN (KHÔNG cho CUSTOMER)
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/internal/category-promotions/**"
+                        ).hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
+
+
+                        // ===================== CUSTOMER =====================
                         .requestMatchers(HttpMethod.PUT,
                                 "/api/internal/customers/**"
                         ).hasAnyAuthority("ROLE_ADMIN", "ROLE_CUSTOMER")
@@ -100,53 +107,81 @@ public class SecurityConfig {
                                 "/api/internal/payments/vnpay/create"
                         ).hasAnyAuthority("ROLE_ADMIN", "ROLE_CUSTOMER")
 
-                        // ===================== STAFF & ADMIN - Chỉ được XEM =====================
+
+                        // ===================== STAFF & ADMIN =====================
                         .requestMatchers(HttpMethod.GET,
                                 "/api/internal/staff/**",
                                 "/api/internal/customers"
-                        ).hasAnyAuthority("ROLE_STAFF" , "ROLE_ADMIN")
+                        ).hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
 
-                        // ===================== STAFF & ADMIN - Được sửa Order =====================
                         .requestMatchers(HttpMethod.PUT,
                                 "/api/internal/orders/**"
-                        ).hasAnyAuthority("ROLE_STAFF", "ROLE_ADMIN")
+                        ).hasAnyAuthority("ROLE_ADMIN", "ROLE_STAFF")
+
 
                         // ===================== ADMIN ONLY =====================
-                        .requestMatchers(HttpMethod.POST, "/api/internal/staff")
-                        .hasAuthority("ROLE_ADMIN")
 
-                        .requestMatchers(HttpMethod.PUT, "/api/internal/staff/**")
-                        .hasAuthority("ROLE_ADMIN")
-
-                        .requestMatchers(HttpMethod.DELETE,
-                                "/api/internal/staff/**",
-                                "/api/internal/promotions/**",
-                                "/api/internal/category-promotions/**"
+                        // Staff management
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/internal/staff"
                         ).hasAuthority("ROLE_ADMIN")
 
-                        // Promotion & Category Promotion - Chỉ ADMIN
+                        .requestMatchers(HttpMethod.PUT,
+                                "/api/internal/staff/**"
+                        ).hasAuthority("ROLE_ADMIN")
+
+                        .requestMatchers(HttpMethod.DELETE,
+                                "/api/internal/staff/**"
+                        ).hasAuthority("ROLE_ADMIN")
+
+
+                        // Promotions
                         .requestMatchers(HttpMethod.POST,
-                                "/api/internal/promotions",
-                                "/api/internal/category-promotions"
+                                "/api/internal/promotions"
                         ).hasAuthority("ROLE_ADMIN")
 
                         .requestMatchers(HttpMethod.PUT,
                                 "/api/internal/promotions/**"
                         ).hasAuthority("ROLE_ADMIN")
 
-                        .requestMatchers(HttpMethod.PUT, "/api/internal/payments/**")
-                        .hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE,
+                                "/api/internal/promotions/**"
+                        ).hasAuthority("ROLE_ADMIN")
 
+
+                        // CATEGORY PROMOTION (mapping internal)
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/internal/category-promotions"
+                        ).hasAuthority("ROLE_ADMIN")
+
+                        .requestMatchers(HttpMethod.PUT,
+                                "/api/internal/category-promotions/**"
+                        ).hasAuthority("ROLE_ADMIN")
+
+                        .requestMatchers(HttpMethod.DELETE,
+                                "/api/internal/category-promotions/**"
+                        ).hasAuthority("ROLE_ADMIN")
+
+
+                        // Payments admin control
+                        .requestMatchers(HttpMethod.PUT,
+                                "/api/internal/payments/**"
+                        ).hasAuthority("ROLE_ADMIN")
+
+
+                        // ===================== FALLBACK =====================
                         .anyRequest().authenticated()
                 )
 
+                // ===================== JWT RESOURCE SERVER =====================
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt
                                 .decoder(customJwtDecoder)
                                 .jwtAuthenticationConverter(jwtAuthenticationConverter())
                         )
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                        // ==================== XỬ LÝ 403 ====================
+
+                        // ==================== 403 HANDLER ====================
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.setStatus(403);
                             response.setContentType("application/json;charset=UTF-8");
@@ -159,9 +194,9 @@ public class SecurityConfig {
                             try {
                                 new ObjectMapper().writeValue(response.getWriter(), apiResponse);
                             } catch (Exception e) {
-                                // fallback nếu có lỗi
                                 response.getWriter().write("{\"code\":403,\"message\":\"Access Denied\"}");
                             }
+
                             response.flushBuffer();
                         })
                 );
